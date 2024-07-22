@@ -3,7 +3,7 @@ using Weather.Domain.Common.Dto;
 using WebApiDataService.Authorization;
 using WebApiDataService.DataLayer.Weather;
 using WebApiDataService.DataLayer.Weather.Models;
-using WebApiDataService.Middleware;
+using WebApiDataService.RateLimiting;
 using WebApiExploration.Dto;
 
 namespace WebApiExploration.Controllers
