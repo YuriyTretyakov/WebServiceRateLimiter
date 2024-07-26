@@ -40,27 +40,24 @@ namespace WebApiDataService.Authorization
             await _repository.AssignApiKeyToClientAsync(keyId, clientId, cancellationToken);
         }
 
-        public async ValueTask<(bool IsValid, LimitsDto Limit)> IsKeyValidAsync(string key, CancellationToken cancellationToken)
+        public async ValueTask<bool> IsKeyValidAsync(string key, CancellationToken cancellationToken)
         {
             bool result = false;
-            LimitsDto limit = null;
-
+            
             if (string.IsNullOrWhiteSpace(key))
             {
-                 return (false, limit);
+                 return false;
             }
-
 
             if (_memoryCache.TryGetValue<CachedApiKeyStateAndLimitDto>(key, out var stateAndLimitDto))
             {
                 if (stateAndLimitDto?.State == ApiKeyStateDto.Active)
                 { 
-                    limit = stateAndLimitDto.Limit;
                     result = true;
                 }
                 else
                 {
-                    return (false, limit);
+                    return false;
                 }
             }
             else
@@ -74,15 +71,46 @@ namespace WebApiDataService.Authorization
                 }
                 else
                 {
-                    limit = _repository.GetLimitsByPlan(keyDto.PaymentPlan.Value);
                     UpdateCache(key, keyDto.PaymentPlan.Value, keyDto.State);
                     result = true;
                 }
+            }
+            
+            return result;
+        }
 
+        public async ValueTask<LimitsDto> GetLimitsForApiKeyAsync(string key, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return default;
             }
 
-            
-            return (result, limit);
+            LimitsDto limit = null;
+
+            if (_memoryCache.TryGetValue<CachedApiKeyStateAndLimitDto>(key, out var stateAndLimitDto))
+            {
+                if (stateAndLimitDto?.State == ApiKeyStateDto.Active)
+                {
+                    limit = stateAndLimitDto.Limit;
+                }
+            }
+            else
+            {
+                var keyDto = await _repository.GetKeyAsync(key, cancellationToken);
+
+                if (keyDto == null)
+                {
+                    UpdateCache(key, PaymentPlanTypeDto.Basic, ApiKeyStateDto.Unknown);
+                }
+                else
+                {
+                    UpdateCache(key, keyDto.PaymentPlan.Value, keyDto.State);
+                    limit = _repository.GetLimitsByPlan(keyDto.PaymentPlan.Value);
+                }
+            }
+
+            return limit;
         }
 
         public async Task UpdatePlanAsync(Guid keyId, PaymentPlanTypeDto newPlan, CancellationToken cancellationToken)
