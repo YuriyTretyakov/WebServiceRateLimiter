@@ -21,7 +21,7 @@ namespace WebApiDataService.Authorization
                 context.Result = new UnauthorizedResult();
             }
 
-            var (result, _) = await _service.IsKeyValidAsync(currentApiKey);
+            var result  = await _service.IsKeyValidAsync(currentApiKey);
 
             if (!result)
             {

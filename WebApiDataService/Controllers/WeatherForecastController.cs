@@ -26,7 +26,6 @@ namespace WebApiExploration.Controllers
             _weatherForecastManager = weatherForecastManager;
         }
 
-        [ApiKeyAuthorization]
         [UseApiKeyRateLimiting]
         [HttpGet("get-forecast")]
         public IEnumerable<WeatherForecast> Get(CancellationToken cancellationToken)

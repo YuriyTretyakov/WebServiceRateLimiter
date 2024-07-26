@@ -1,17 +1,17 @@
 ﻿
 namespace WebApiDataService.RateLimiting
 {
-    public class FixedWindowRateLimiter
+    public class FixedWindowRateLimiter : IFixedWindowRateLimiter
     {
         public int TotalRequestCount { get; private set; }
         public int RequestCount { get; private set; }
         public DateTimeOffset WindowStart { get; private set; }
         public DateTimeOffset WindowEnd { get; private set; }
-        public TimeSpan Duration  { get; private set; }
+        public TimeSpan Duration { get; private set; }
 
         private bool _isInitialised;
 
-        private SemaphoreSlim _semaphore = new SemaphoreSlim(1,1);
+        private SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
 
         public async Task<bool> CanProcessRequestAsync()
         {
@@ -60,7 +60,7 @@ namespace WebApiDataService.RateLimiting
         private void Reset()
         {
             WindowStart = DateTimeOffset.UtcNow;
-            WindowEnd = WindowStart+Duration;
+            WindowEnd = WindowStart + Duration;
             RequestCount = TotalRequestCount;
             _isInitialised = true;
         }
